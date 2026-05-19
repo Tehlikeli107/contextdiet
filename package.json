@@ -1,6 +1,6 @@
 {
   "name": "contextdiet",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Measure, trim, and prove AI coding-agent context quality.",
   "type": "module",
   "repository": {
@@ -15,7 +15,9 @@
     "contextdiet": "./bin/contextdiet.js"
   },
   "files": [
+    "action.yml",
     "bin",
+    "schema",
     "src",
     "README.md",
     "LICENSE",

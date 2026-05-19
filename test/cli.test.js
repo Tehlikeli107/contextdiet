@@ -1,4 +1,4 @@
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
@@ -57,6 +57,47 @@ test('unknown command exits with usage error', async () => {
 
   assert.equal(result.exitCode, 2);
   assert.match(errors.join('\n'), /Usage:/);
+});
+
+test('help exits successfully with usage text', async () => {
+  const lines = [];
+
+  const result = await runCli(['--help'], {
+    stdout: (line) => lines.push(line),
+    stderr: () => {}
+  });
+
+  assert.equal(result.exitCode, 0);
+  assert.match(lines.join('\n'), /Usage:/);
+});
+
+test('version exits successfully with package version', async () => {
+  const lines = [];
+
+  const result = await runCli(['--version'], {
+    stdout: (line) => lines.push(line),
+    stderr: () => {}
+  });
+
+  assert.equal(result.exitCode, 0);
+  assert.match(lines.join('\n'), /^\d+\.\d+\.\d+$/);
+});
+
+test('init writes a default config file', async () => {
+  await withTempRepo(async (root) => {
+    const lines = [];
+
+    const result = await runCli(['init', '--root', root], {
+      stdout: (line) => lines.push(line),
+      stderr: () => {}
+    });
+
+    const config = JSON.parse(await readFile(join(root, 'contextdiet.config.json'), 'utf8'));
+    assert.equal(result.exitCode, 0);
+    assert.equal(config.threshold, 90);
+    assert.deepEqual(config.ignoredRules, []);
+    assert.match(lines.join('\n'), /Created contextdiet.config.json/);
+  });
 });
 
 test('scan --strict exits with failure when score is below threshold', async () => {

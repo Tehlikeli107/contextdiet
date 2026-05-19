@@ -1,0 +1,28 @@
+{
+  "$schema": "./schema/contextdiet.schema.json",
+  "threshold": 90,
+  "ignoredRules": [],
+  "rules": {
+    "missing-entrypoint": {
+      "weight": 10
+    },
+    "stale-command": {
+      "weight": 8
+    },
+    "stale-path": {
+      "weight": 8
+    },
+    "conflicting-instruction": {
+      "weight": 7
+    },
+    "repeated-instruction": {
+      "weight": 4
+    },
+    "risky-mcp-command": {
+      "weight": 10
+    },
+    "skill-metadata": {
+      "weight": 6
+    }
+  }
+}

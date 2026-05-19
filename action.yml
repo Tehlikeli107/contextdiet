@@ -1,0 +1,29 @@
+name: contextdiet
+description: Scan AI coding-agent context quality in CI
+author: Tehlikeli107
+
+inputs:
+  root:
+    description: Repository root to scan
+    required: false
+    default: "."
+  threshold:
+    description: Minimum score required for success
+    required: false
+    default: "90"
+  format:
+    description: Output format: text, json, or sarif
+    required: false
+    default: "text"
+
+outputs:
+  exit-code:
+    description: contextdiet CLI exit code
+
+runs:
+  using: node20
+  main: src/action.js
+
+branding:
+  icon: activity
+  color: green

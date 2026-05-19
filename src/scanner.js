@@ -2,6 +2,7 @@ import { readdir, readFile } from 'node:fs/promises';
 import { basename, join, relative, sep } from 'node:path';
 
 import { analyzeFiles } from './analyzers.js';
+import { applyConfigToFindings, loadConfig } from './config.js';
 import { calculateScore } from './scoring.js';
 
 const IGNORED_DIRECTORIES = new Set(['.git', 'node_modules', 'dist', 'coverage']);
@@ -55,12 +56,14 @@ export async function discoverContextFiles(root) {
 }
 
 export async function scanRepository(root) {
+  const config = await loadConfig(root);
   const files = await discoverContextFiles(root);
-  const findings = await analyzeFiles(root, files);
+  const findings = applyConfigToFindings(await analyzeFiles(root, files), config);
   const score = calculateScore(findings);
 
   return {
     root,
+    config,
     files,
     findings,
     score

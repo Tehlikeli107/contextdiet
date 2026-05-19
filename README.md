@@ -13,6 +13,8 @@ Think Lighthouse for AI coding-agent context.
 ```bash
 npx github:Tehlikeli107/contextdiet scan --root .
 npx github:Tehlikeli107/contextdiet score --root .
+npx github:Tehlikeli107/contextdiet badge --root .
+npx github:Tehlikeli107/contextdiet init --root .
 npx github:Tehlikeli107/contextdiet fix --safe --root .
 ```
 
@@ -21,6 +23,8 @@ After the npm package is published, the commands become:
 ```bash
 npx contextdiet scan
 npx contextdiet score
+npx contextdiet badge
+npx contextdiet init
 npx contextdiet fix --safe
 ```
 
@@ -57,6 +61,12 @@ Generate a README badge:
 node ./bin/contextdiet.js badge --root .
 ```
 
+Create a starter config:
+
+```bash
+node ./bin/contextdiet.js init --root .
+```
+
 Try the intentionally noisy demo fixture:
 
 ```bash
@@ -70,7 +80,10 @@ node ./bin/contextdiet.js scan --root examples/noisy-agent-context
 | `scan` | Print a full human-readable report |
 | `score` | Print compact score output |
 | `badge` | Print a Shields.io markdown badge |
+| `init` | Create `contextdiet.config.json` if it does not exist |
 | `fix --safe` | Apply conservative whitespace-only cleanup |
+| `--help` | Print usage |
+| `--version` | Print package version |
 
 Common options:
 
@@ -78,6 +91,7 @@ Common options:
 | --- | --- |
 | `--root <path>` | Scan a specific repository root |
 | `--json` | Print machine-readable JSON for `scan` and `score` |
+| `--sarif` | Print SARIF 2.1.0 output for `scan` |
 | `--strict` | Exit 1 when score is below threshold |
 | `--threshold <0-100>` | Score threshold for strict mode, default `90` |
 
@@ -119,6 +133,30 @@ Findings:
 
 ## GitHub Actions
 
+Use contextdiet as a reusable action:
+
+```yaml
+name: Agent Context
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  contextdiet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: Tehlikeli107/contextdiet@v0.2.0
+        with:
+          root: .
+          threshold: 90
+          format: text
+```
+
+Or run the CLI directly:
+
 ```yaml
 name: Agent Context
 
@@ -138,12 +176,35 @@ jobs:
       - run: npx github:Tehlikeli107/contextdiet scan --root . --strict --threshold 90
 ```
 
-## JSON Output
+## Machine Output
 
 ```bash
 npx github:Tehlikeli107/contextdiet scan --root . --json
 npx github:Tehlikeli107/contextdiet score --root . --json
+npx github:Tehlikeli107/contextdiet scan --root . --sarif > contextdiet.sarif
 ```
+
+## Configuration
+
+Create `contextdiet.config.json` in the repository root with `contextdiet init`, or write it manually:
+
+```json
+{
+  "$schema": "./schema/contextdiet.schema.json",
+  "threshold": 90,
+  "ignoredRules": [],
+  "rules": {
+    "stale-command": {
+      "weight": 8
+    },
+    "risky-mcp-command": {
+      "weight": 10
+    }
+  }
+}
+```
+
+CLI `--threshold` overrides the config threshold. `ignoredRules` removes matching findings before scoring.
 
 ## Safe Fixes
 
@@ -165,9 +226,8 @@ npm run badge
 
 ## Roadmap
 
-- GitHub Action wrapper with first-class annotations
-- SARIF output for code scanning integrations
-- configurable rule weights in `contextdiet.config.json`
+- GitHub Action annotations
+- SARIF upload workflow examples
 - session-log analysis for Claude Code, Codex, Cursor, and Gemini CLI
 - before/after context benchmarks
 - safer skill and MCP lifecycle checks
