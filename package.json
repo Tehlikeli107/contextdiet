@@ -12,7 +12,7 @@
     "url": "https://github.com/Tehlikeli107/contextdiet/issues"
   },
   "bin": {
-    "contextdiet": "./bin/contextdiet.js"
+    "contextdiet": "bin/contextdiet.js"
   },
   "files": [
     "action.yml",
