@@ -1,0 +1,47 @@
+name: Bug report
+description: Report incorrect contextdiet behavior
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Please include the smallest reproduction you can.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe the behavior and why it looks wrong.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Include files, commands, and output.
+      placeholder: |
+        1. Create AGENTS.md with ...
+        2. Run contextdiet scan --root .
+        3. See ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      placeholder: "0.1.0 or commit SHA"
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - scanner
+        - scoring
+        - safe fixes
+        - CLI output
+        - documentation
+        - other
+    validations:
+      required: true

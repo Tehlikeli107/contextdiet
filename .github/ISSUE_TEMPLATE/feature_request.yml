@@ -1,0 +1,32 @@
+name: Feature request
+description: Suggest a new rule, command, output format, or integration
+title: "feat: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What agent-context problem would this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: What should contextdiet do?
+    validations:
+      required: true
+  - type: textarea
+    id: examples
+    attributes:
+      label: Examples
+      description: Include sample files or expected output if possible.
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: Constraints
+      options:
+        - label: This can run without network access.
+        - label: This can be explained deterministically.
+        - label: This can be tested with a small fixture.
