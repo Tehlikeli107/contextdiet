@@ -14,6 +14,12 @@
   "bin": {
     "contextdiet": "./bin/contextdiet.js"
   },
+  "files": [
+    "bin",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "test": "node --test"
   },
