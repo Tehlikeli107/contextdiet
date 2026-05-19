@@ -34,3 +34,17 @@ export function formatScore(scan) {
     `Findings: ${scan.score.findings}`
   ].join('\n');
 }
+
+export function badgeColor(score) {
+  if (score >= 90) return 'brightgreen';
+  if (score >= 75) return 'yellow';
+  if (score >= 50) return 'orange';
+  return 'red';
+}
+
+export function formatBadge(scan) {
+  const score = scan.score.score;
+  const maxScore = scan.score.maxScore;
+  const encodedValue = encodeURIComponent(`${score}/${maxScore}`);
+  return `![Agent Context Score](https://img.shields.io/badge/agent_context-${encodedValue}-${badgeColor(score)})`;
+}

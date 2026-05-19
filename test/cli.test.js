@@ -59,6 +59,48 @@ test('unknown command exits with usage error', async () => {
   assert.match(errors.join('\n'), /Usage:/);
 });
 
+test('scan --strict exits with failure when score is below threshold', async () => {
+  await withTempRepo(async (root) => {
+    await writeFile(join(root, 'AGENTS.md'), '- Run `npm run missing`\n- Read `docs/missing.md`\n');
+    const lines = [];
+
+    const result = await runCli(['scan', '--root', root, '--strict', '--threshold', '95'], {
+      stdout: (line) => lines.push(line),
+      stderr: () => {}
+    });
+
+    assert.equal(result.exitCode, 1);
+    assert.match(lines.join('\n'), /Score: 84\/100/);
+  });
+});
+
+test('scan --threshold rejects invalid values', async () => {
+  const errors = [];
+
+  const result = await runCli(['scan', '--threshold', 'nope'], {
+    stdout: () => {},
+    stderr: (line) => errors.push(line)
+  });
+
+  assert.equal(result.exitCode, 2);
+  assert.match(errors.join('\n'), /threshold must be an integer/);
+});
+
+test('badge prints a shields markdown badge', async () => {
+  await withTempRepo(async (root) => {
+    await writeFile(join(root, 'AGENTS.md'), '# Agent rules\n');
+    const lines = [];
+
+    const result = await runCli(['badge', '--root', root], {
+      stdout: (line) => lines.push(line),
+      stderr: () => {}
+    });
+
+    assert.equal(result.exitCode, 0);
+    assert.match(lines.join('\n'), /^!\[Agent Context Score\]\(https:\/\/img\.shields\.io\/badge\/agent_context-100%2F100-brightgreen\)$/);
+  });
+});
+
 test('scan --json prints machine-readable scan output', async () => {
   await withTempRepo(async (root) => {
     await writeFile(join(root, 'AGENTS.md'), '# Agent rules\n');
