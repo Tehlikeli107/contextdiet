@@ -1,3 +1,7 @@
+import { applySafeFixes } from './fixes.js';
+import { formatScore, formatTextReport, publicScanResult } from './format.js';
+import { scanRepository } from './scanner.js';
+
 const USAGE = `Usage:
   contextdiet scan [--root <path>] [--json]
   contextdiet score [--root <path>] [--json]
@@ -30,16 +34,26 @@ function parseArgs(argv) {
 export async function runCli(argv, io = {}) {
   const stdout = io.stdout ?? console.log;
   const stderr = io.stderr ?? console.error;
-  const { command } = parseArgs(argv);
+  const { command, options } = parseArgs(argv);
 
   if (command === 'scan') {
-    stdout('Contextdiet report');
-    stdout('Score: 100/100');
+    const scan = await scanRepository(options.root);
+    stdout(options.json ? JSON.stringify(publicScanResult(scan), null, 2) : formatTextReport(scan));
     return { exitCode: 0 };
   }
 
   if (command === 'score') {
-    stdout('Score: 100/100');
+    const scan = await scanRepository(options.root);
+    stdout(options.json ? JSON.stringify(scan.score, null, 2) : formatScore(scan));
+    return { exitCode: 0 };
+  }
+
+  if (command === 'fix' && options.safe) {
+    const result = await applySafeFixes(options.root);
+    stdout(`Changed files: ${result.changedFiles}`);
+    for (const file of result.files) {
+      stdout(`- ${file}`);
+    }
     return { exitCode: 0 };
   }
 
