@@ -1,0 +1,24 @@
+{
+  "name": "contextdiet",
+  "version": "0.1.0",
+  "description": "Measure, trim, and prove AI coding-agent context quality.",
+  "type": "module",
+  "bin": {
+    "contextdiet": "./bin/contextdiet.js"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "keywords": [
+    "agents",
+    "AGENTS.md",
+    "Claude",
+    "Codex",
+    "MCP",
+    "context-engineering"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  }
+}
