@@ -3,6 +3,14 @@
   "version": "0.1.0",
   "description": "Measure, trim, and prove AI coding-agent context quality.",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Tehlikeli107/contextdiet.git"
+  },
+  "homepage": "https://github.com/Tehlikeli107/contextdiet#readme",
+  "bugs": {
+    "url": "https://github.com/Tehlikeli107/contextdiet/issues"
+  },
   "bin": {
     "contextdiet": "./bin/contextdiet.js"
   },
