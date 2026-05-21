@@ -2,6 +2,16 @@
 
 All notable changes to contextdiet are documented here.
 
+## 0.3.0 - 2026-05-21
+
+### Added
+
+- `scan --format markdown` for GitHub-ready reports.
+- `doctor` command for prioritized context debt diagnosis and next steps.
+- `doctor --json` and `doctor --format markdown` outputs.
+- GitHub Action `comment` input for creating or updating a pull request comment.
+- GitHub Action `format: markdown` support.
+
 ## 0.2.0 - 2026-05-19
 
 ### Added

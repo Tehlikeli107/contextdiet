@@ -12,13 +12,19 @@ inputs:
     required: false
     default: "90"
   format:
-    description: Output format: text, json, or sarif
+    description: Output format: text, json, sarif, or markdown
     required: false
     default: "text"
+  comment:
+    description: Post or update a contextdiet pull request comment
+    required: false
+    default: "false"
 
 outputs:
   exit-code:
     description: contextdiet CLI exit code
+  comment-action:
+    description: created or updated when a pull request comment is written
 
 runs:
   using: node20

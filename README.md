@@ -11,17 +11,8 @@ Your coding agent is only as good as the context you feed it.
 Think Lighthouse for AI coding-agent context.
 
 ```bash
-npx github:Tehlikeli107/contextdiet scan --root .
-npx github:Tehlikeli107/contextdiet score --root .
-npx github:Tehlikeli107/contextdiet badge --root .
-npx github:Tehlikeli107/contextdiet init --root .
-npx github:Tehlikeli107/contextdiet fix --safe --root .
-```
-
-After the npm package is published, the commands become:
-
-```bash
 npx contextdiet scan
+npx contextdiet doctor
 npx contextdiet score
 npx contextdiet badge
 npx contextdiet init
@@ -46,31 +37,43 @@ AI coding agents are moving from demos into real repositories, but repo-level co
 Scan the current repository:
 
 ```bash
-node ./bin/contextdiet.js scan --root .
+npx contextdiet scan --root .
+```
+
+Diagnose the highest-impact context debt:
+
+```bash
+npx contextdiet doctor --root .
 ```
 
 Fail CI when the score drops below 90:
 
 ```bash
-node ./bin/contextdiet.js scan --root . --strict --threshold 90
+npx contextdiet scan --root . --strict --threshold 90
+```
+
+Generate a Markdown report for GitHub comments or issues:
+
+```bash
+npx contextdiet scan --root . --format markdown
 ```
 
 Generate a README badge:
 
 ```bash
-node ./bin/contextdiet.js badge --root .
+npx contextdiet badge --root .
 ```
 
 Create a starter config:
 
 ```bash
-node ./bin/contextdiet.js init --root .
+npx contextdiet init --root .
 ```
 
 Try the intentionally noisy demo fixture:
 
 ```bash
-node ./bin/contextdiet.js scan --root examples/noisy-agent-context
+npx contextdiet scan --root examples/noisy-agent-context
 ```
 
 ## Commands
@@ -78,6 +81,7 @@ node ./bin/contextdiet.js scan --root examples/noisy-agent-context
 | Command | Purpose |
 | --- | --- |
 | `scan` | Print a full human-readable report |
+| `doctor` | Diagnose top context debt groups and next actions |
 | `score` | Print compact score output |
 | `badge` | Print a Shields.io markdown badge |
 | `init` | Create `contextdiet.config.json` if it does not exist |
@@ -90,8 +94,9 @@ Common options:
 | Option | Purpose |
 | --- | --- |
 | `--root <path>` | Scan a specific repository root |
-| `--json` | Print machine-readable JSON for `scan` and `score` |
+| `--json` | Print machine-readable JSON for `scan`, `doctor`, and `score` |
 | `--sarif` | Print SARIF 2.1.0 output for `scan` |
+| `--format <text\|json\|sarif\|markdown>` | Select scan output format |
 | `--strict` | Exit 1 when score is below threshold |
 | `--threshold <0-100>` | Score threshold for strict mode, default `90` |
 
@@ -131,9 +136,27 @@ Findings:
 - [warning] stale-path AGENTS.md: Referenced path "docs/missing.md" does not exist.
 ```
 
+Doctor output prioritizes the next useful cleanup:
+
+```text
+Contextdiet doctor
+Score: 84/100
+Status: watch
+Threshold: 90
+Files scanned: 1
+
+Top problems:
+- stale-command: 1 finding, 8 point penalty, first seen in AGENTS.md
+- stale-path: 1 finding, 8 point penalty, first seen in AGENTS.md
+
+Next steps:
+1. Restore missing npm scripts or update the instructions that reference them.
+2. Update or remove local file references that no longer exist.
+```
+
 ## GitHub Actions
 
-Use contextdiet as a reusable action:
+Use contextdiet as a reusable action with pull request comments:
 
 ```yaml
 name: Agent Context
@@ -143,16 +166,22 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
 jobs:
   contextdiet:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: Tehlikeli107/contextdiet@v0.2.0
+      - uses: Tehlikeli107/contextdiet@v0.3.0
         with:
           root: .
           threshold: 90
-          format: text
+          format: markdown
+          comment: true
 ```
 
 Or run the CLI directly:
@@ -173,15 +202,17 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 24
-      - run: npx github:Tehlikeli107/contextdiet scan --root . --strict --threshold 90
+      - run: npx contextdiet scan --root . --strict --threshold 90
 ```
 
 ## Machine Output
 
 ```bash
-npx github:Tehlikeli107/contextdiet scan --root . --json
-npx github:Tehlikeli107/contextdiet score --root . --json
-npx github:Tehlikeli107/contextdiet scan --root . --sarif > contextdiet.sarif
+npx contextdiet scan --root . --json
+npx contextdiet score --root . --json
+npx contextdiet doctor --root . --json
+npx contextdiet scan --root . --format markdown
+npx contextdiet scan --root . --sarif > contextdiet.sarif
 ```
 
 ## Configuration
@@ -220,13 +251,14 @@ It does not delete instructions, rewrite MCP config, change permissions, or inve
 ```bash
 npm test
 npm run scan
+npm run doctor
 npm run score
 npm run badge
 ```
 
 ## Roadmap
 
-- GitHub Action annotations
+- GitHub Action annotations and richer summaries
 - SARIF upload workflow examples
 - session-log analysis for Claude Code, Codex, Cursor, and Gemini CLI
 - before/after context benchmarks

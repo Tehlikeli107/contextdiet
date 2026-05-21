@@ -2,13 +2,24 @@ import { readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { createDoctorReport } from './doctor.js';
 import { applySafeFixes } from './fixes.js';
-import { formatBadge, formatSarif, formatScore, formatTextReport, publicScanResult } from './format.js';
+import {
+  formatBadge,
+  formatDoctorMarkdown,
+  formatDoctorText,
+  formatMarkdownReport,
+  formatSarif,
+  formatScore,
+  formatTextReport,
+  publicScanResult
+} from './format.js';
 import { scanRepository } from './scanner.js';
 import { writeDefaultConfig } from './config.js';
 
 const USAGE = `Usage:
-  contextdiet scan [--root <path>] [--json]
+  contextdiet scan [--root <path>] [--json] [--format <text|json|sarif|markdown>]
+  contextdiet doctor [--root <path>] [--json] [--format <text|json|markdown>]
   contextdiet score [--root <path>] [--json]
   contextdiet badge [--root <path>]
   contextdiet init [--root <path>]
@@ -17,8 +28,11 @@ const USAGE = `Usage:
 Options:
   --strict              Exit 1 when score is below threshold
   --threshold <0-100>   Score threshold for --strict (default: 90)
+  --format <format>     Print text, json, sarif, or markdown output
   --sarif               Print SARIF 2.1.0 output for scan
 `;
+
+const VALID_FORMATS = new Set(['text', 'json', 'sarif', 'markdown']);
 
 async function packageVersion() {
   const packagePath = join(dirname(fileURLToPath(import.meta.url)), '..', 'package.json');
@@ -35,6 +49,7 @@ function parseArgs(argv) {
     strict: false,
     thresholdPassed: false,
     sarif: false,
+    format: 'text',
     threshold: 90
   };
 
@@ -45,6 +60,7 @@ function parseArgs(argv) {
       index += 1;
     } else if (arg === '--json') {
       options.json = true;
+      options.format = 'json';
     } else if (arg === '--safe') {
       options.safe = true;
     } else if (arg === '--strict') {
@@ -55,6 +71,10 @@ function parseArgs(argv) {
       index += 1;
     } else if (arg === '--sarif') {
       options.sarif = true;
+      options.format = 'sarif';
+    } else if (arg === '--format') {
+      options.format = argv[index + 1];
+      index += 1;
     }
   }
 
@@ -82,14 +102,41 @@ export async function runCli(argv, io = {}) {
     return { exitCode: 2 };
   }
 
+  if (!VALID_FORMATS.has(options.format)) {
+    stderr('Error: format must be one of text, json, sarif, markdown.');
+    stderr(USAGE.trimEnd());
+    return { exitCode: 2 };
+  }
+
+  if (command === 'doctor' && options.format === 'sarif') {
+    stderr('Error: sarif output is only supported for scan.');
+    stderr(USAGE.trimEnd());
+    return { exitCode: 2 };
+  }
+
   if (command === 'scan') {
     const scan = await scanRepository(options.root);
     const threshold = options.thresholdPassed ? options.threshold : scan.config.threshold;
-    const output = options.sarif
+    const output = options.format === 'sarif'
       ? JSON.stringify(formatSarif(scan), null, 2)
-      : options.json
+      : options.format === 'json'
         ? JSON.stringify(publicScanResult(scan), null, 2)
-        : formatTextReport(scan);
+        : options.format === 'markdown'
+          ? formatMarkdownReport(scan)
+          : formatTextReport(scan);
+    stdout(output);
+    return { exitCode: options.strict && scan.score.score < threshold ? 1 : 0 };
+  }
+
+  if (command === 'doctor') {
+    const scan = await scanRepository(options.root);
+    const threshold = options.thresholdPassed ? options.threshold : scan.config.threshold;
+    const report = createDoctorReport(scan);
+    const output = options.format === 'json'
+      ? JSON.stringify(report, null, 2)
+      : options.format === 'markdown'
+        ? formatDoctorMarkdown(report)
+        : formatDoctorText(report);
     stdout(output);
     return { exitCode: options.strict && scan.score.score < threshold ? 1 : 0 };
   }

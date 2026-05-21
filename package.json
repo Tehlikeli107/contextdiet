@@ -1,6 +1,6 @@
 {
   "name": "contextdiet",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Measure, trim, and prove AI coding-agent context quality.",
   "type": "module",
   "repository": {
@@ -27,6 +27,7 @@
     "test": "node --test",
     "scan": "node ./bin/contextdiet.js scan --root .",
     "score": "node ./bin/contextdiet.js score --root .",
+    "doctor": "node ./bin/contextdiet.js doctor --root .",
     "badge": "node ./bin/contextdiet.js badge --root ."
   },
   "keywords": [

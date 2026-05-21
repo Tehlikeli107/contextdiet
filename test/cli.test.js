@@ -160,6 +160,109 @@ test('scan --json prints machine-readable scan output', async () => {
   });
 });
 
+test('scan --format markdown prints a GitHub-friendly report', async () => {
+  await withTempRepo(async (root) => {
+    await writeFile(join(root, 'AGENTS.md'), '# Agent rules\n\n- Run `npm run missing`\n');
+    const lines = [];
+
+    const result = await runCli(['scan', '--root', root, '--format', 'markdown'], {
+      stdout: (line) => lines.push(line),
+      stderr: () => {}
+    });
+
+    const output = lines.join('\n');
+    assert.equal(result.exitCode, 0);
+    assert.match(output, /^## Contextdiet report/m);
+    assert.match(output, /\*\*Score:\*\* \d+\/100/);
+    assert.match(output, /\| Severity \| Rule \| File \| Message \|/);
+    assert.match(output, /\| warning \| `stale-command` \| `AGENTS\.md` \| Referenced npm script/);
+  });
+});
+
+test('scan --format rejects unknown output formats', async () => {
+  const errors = [];
+
+  const result = await runCli(['scan', '--format', 'banana'], {
+    stdout: () => {},
+    stderr: (line) => errors.push(line)
+  });
+
+  assert.equal(result.exitCode, 2);
+  assert.match(errors.join('\n'), /format must be one of/);
+});
+
+test('doctor prints prioritized context debt guidance', async () => {
+  await withTempRepo(async (root) => {
+    await writeFile(join(root, 'AGENTS.md'), '- Run `npm run missing`\n- Read `docs/missing.md`\n');
+    const lines = [];
+
+    const result = await runCli(['doctor', '--root', root], {
+      stdout: (line) => lines.push(line),
+      stderr: () => {}
+    });
+
+    const output = lines.join('\n');
+    assert.equal(result.exitCode, 0);
+    assert.match(output, /Contextdiet doctor/);
+    assert.match(output, /Status: watch/);
+    assert.match(output, /Top problems:/);
+    assert.match(output, /stale-command: 1 finding/);
+    assert.match(output, /Next steps:/);
+    assert.match(output, /Restore missing npm scripts or update the instructions that reference them/);
+  });
+});
+
+test('doctor --json prints a machine-readable diagnosis', async () => {
+  await withTempRepo(async (root) => {
+    await writeFile(join(root, 'AGENTS.md'), '- Run `npm run missing`\n');
+    const lines = [];
+
+    const result = await runCli(['doctor', '--root', root, '--json'], {
+      stdout: (line) => lines.push(line),
+      stderr: () => {}
+    });
+
+    const parsed = JSON.parse(lines.join('\n'));
+    assert.equal(result.exitCode, 0);
+    assert.equal(parsed.status, 'healthy');
+    assert.equal(parsed.score.score, 92);
+    assert.equal(parsed.groups[0].ruleId, 'stale-command');
+    assert.equal(parsed.groups[0].count, 1);
+    assert.equal(Array.isArray(parsed.recommendations), true);
+  });
+});
+
+test('doctor --format markdown prints GitHub-ready guidance', async () => {
+  await withTempRepo(async (root) => {
+    await writeFile(join(root, 'AGENTS.md'), '- Read `docs/missing.md`\n');
+    const lines = [];
+
+    const result = await runCli(['doctor', '--root', root, '--format', 'markdown'], {
+      stdout: (line) => lines.push(line),
+      stderr: () => {}
+    });
+
+    const output = lines.join('\n');
+    assert.equal(result.exitCode, 0);
+    assert.match(output, /^## Contextdiet doctor/m);
+    assert.match(output, /\*\*Status:\*\* healthy/);
+    assert.match(output, /\| Rule \| Findings \| Penalty \| First file \|/);
+    assert.match(output, /\| `stale-path` \| 1 \| 8 \| `AGENTS\.md` \|/);
+  });
+});
+
+test('doctor rejects SARIF output because SARIF is scan-only', async () => {
+  const errors = [];
+
+  const result = await runCli(['doctor', '--format', 'sarif'], {
+    stdout: () => {},
+    stderr: (line) => errors.push(line)
+  });
+
+  assert.equal(result.exitCode, 2);
+  assert.match(errors.join('\n'), /sarif output is only supported for scan/);
+});
+
 test('fix --safe applies conservative whitespace fixes', async () => {
   await withTempRepo(async (root) => {
     const file = join(root, 'AGENTS.md');
